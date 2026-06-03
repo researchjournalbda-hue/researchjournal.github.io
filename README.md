@@ -1,2 +1,486 @@
-# researchjournal.github.io
-Sign up sheet
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BJAR Conference — Delegate Sign-Up</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   BJAR DELEGATE SIGN-UP
+   ------------------------------------------------------------
+   EDIT THESE TWO THINGS:
+   1. CONFIG.scriptUrl  (in the <script> at the bottom)
+   2. CONFIG.organisations fallback list (also in the script)
+   Everything else can be left alone.
+   ============================================================ */
+:root{
+  --ink:#15211f;
+  --ink-soft:#3c4a47;
+  --muted:#6c7a76;
+  --teal:#0e3b47;
+  --teal-deep:#0a2b34;
+  --coral:#e0734f;
+  --coral-deep:#c85d3b;
+  --cream:#f6f2ea;
+  --paper:#fffdf8;
+  --line:#dcd4c6;
+  --line-soft:#e8e1d4;
+  --ok:#2f7d5b;
+  --err:#c0392b;
+  --shadow:0 1px 2px rgba(20,33,31,.05),0 12px 32px -12px rgba(14,59,71,.25);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:"Hanken Grotesk",system-ui,sans-serif;
+  color:var(--ink);
+  background:var(--cream);
+  line-height:1.55;
+  min-height:100vh;
+  position:relative;
+  overflow-x:hidden;
+}
+/* subtle paper grain + light gradient atmosphere */
+body::before{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(1200px 600px at 85% -10%, rgba(224,115,79,.10), transparent 60%),
+    radial-gradient(1000px 700px at -10% 110%, rgba(14,59,71,.10), transparent 55%);
+}
+body::after{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.035'/%3E%3C/svg%3E");
+}
+.wrap{position:relative;z-index:1;max-width:680px;margin:0 auto;padding:40px 22px 80px}
+
+/* ---------- Masthead ---------- */
+.masthead{margin-bottom:26px}
+.kicker{
+  font-size:.74rem;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--coral-deep);font-weight:700;
+}
+.kicker .dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--coral);
+  vertical-align:middle;margin:0 9px 2px}
+h1{
+  font-family:"Fraunces",Georgia,serif;
+  font-optical-sizing:auto;
+  font-weight:500;
+  font-size:clamp(2.1rem,6vw,3rem);
+  line-height:1.02;
+  letter-spacing:-.015em;
+  margin:.35em 0 0;
+  color:var(--teal);
+}
+h1 em{font-style:italic;color:var(--coral-deep)}
+.meta{
+  margin-top:14px;display:flex;flex-wrap:wrap;gap:8px 18px;
+  font-size:.9rem;color:var(--ink-soft);
+}
+.meta span{display:inline-flex;align-items:center;gap:7px}
+.meta svg{width:15px;height:15px;stroke:var(--coral-deep);fill:none;stroke-width:1.7}
+
+/* ---------- Card ---------- */
+.card{
+  background:var(--paper);
+  border:1px solid var(--line-soft);
+  border-radius:18px;
+  box-shadow:var(--shadow);
+  padding:30px 28px;
+  margin-top:22px;
+}
+.intro{font-size:1rem;color:var(--ink-soft)}
+.intro strong{color:var(--ink);font-weight:600}
+.privacy{
+  margin-top:16px;padding:13px 15px;border-radius:11px;
+  background:linear-gradient(0deg,rgba(14,59,71,.04),rgba(14,59,71,.04));
+  border:1px solid var(--line-soft);
+  display:flex;gap:11px;font-size:.86rem;color:var(--ink-soft);
+}
+.privacy svg{flex:none;width:18px;height:18px;stroke:var(--teal);fill:none;stroke-width:1.6;margin-top:1px}
+
+/* ---------- Fields ---------- */
+.field{margin-top:24px}
+.field:first-child{margin-top:4px}
+label{display:block;font-weight:600;font-size:.96rem;color:var(--ink);margin-bottom:3px}
+label .req{color:var(--coral-deep);margin-left:3px}
+.hint{font-size:.83rem;color:var(--muted);margin-bottom:9px}
+input[type=text],input[type=email],textarea,select{
+  width:100%;font-family:inherit;font-size:1rem;color:var(--ink);
+  background:var(--paper);
+  border:1.5px solid var(--line);
+  border-radius:11px;padding:12px 14px;transition:border-color .15s,box-shadow .15s;
+}
+textarea{resize:vertical;min-height:74px}
+input:focus,textarea:focus,select:focus,.combo-input:focus{
+  outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(14,59,71,.12);
+}
+input::placeholder,textarea::placeholder{color:#a9b2af}
+
+/* ---------- Searchable org dropdown ---------- */
+.combo{position:relative}
+.combo-input{
+  width:100%;font-family:inherit;font-size:1rem;color:var(--ink);
+  background:var(--paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='none' stroke='%230e3b47' stroke-width='1.8'%3E%3Cpath d='M6 8l4 4 4-4'/%3E%3C/svg%3E") no-repeat right 14px center;
+  border:1.5px solid var(--line);border-radius:11px;padding:12px 40px 12px 14px;cursor:pointer;
+  transition:border-color .15s,box-shadow .15s;
+}
+.combo-input.chosen{font-weight:500}
+.combo.open .combo-input{border-color:var(--teal);box-shadow:0 0 0 3px rgba(14,59,71,.12);border-bottom-left-radius:0;border-bottom-right-radius:0}
+.combo-list{
+  position:absolute;z-index:20;top:100%;left:0;right:0;
+  max-height:248px;overflow-y:auto;background:var(--paper);
+  border:1.5px solid var(--teal);border-top:none;
+  border-radius:0 0 11px 11px;box-shadow:0 18px 30px -14px rgba(14,59,71,.4);
+  display:none;
+}
+.combo.open .combo-list{display:block}
+.combo-opt{padding:11px 14px;font-size:.97rem;cursor:pointer;border-bottom:1px solid var(--line-soft)}
+.combo-opt:last-child{border-bottom:none}
+.combo-opt:hover,.combo-opt.active{background:rgba(224,115,79,.10)}
+.combo-opt.manual{color:var(--teal);font-weight:600}
+.combo-empty{padding:14px;font-size:.9rem;color:var(--muted);text-align:center}
+.combo-loading{padding:14px;font-size:.9rem;color:var(--muted);text-align:center}
+
+/* consent */
+.consent{margin-top:26px;display:flex;gap:12px;align-items:flex-start;
+  padding:15px;border:1px solid var(--line-soft);border-radius:12px;background:rgba(14,59,71,.025)}
+.consent input{margin-top:3px;width:18px;height:18px;flex:none;accent-color:var(--teal)}
+.consent label{font-weight:400;font-size:.9rem;color:var(--ink-soft);margin:0;cursor:pointer}
+
+/* error text */
+.error-msg{display:none;color:var(--err);font-size:.82rem;margin-top:6px;font-weight:500}
+.field.invalid .error-msg{display:block}
+.field.invalid input,.field.invalid textarea,.field.invalid .combo-input{border-color:var(--err)}
+
+/* ---------- Submit ---------- */
+.submit{
+  margin-top:30px;width:100%;font-family:inherit;font-weight:600;font-size:1.02rem;
+  color:#fff;background:var(--teal);border:none;border-radius:12px;padding:15px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  transition:background .18s,transform .06s;
+}
+.submit:hover{background:var(--teal-deep)}
+.submit:active{transform:translateY(1px)}
+.submit:disabled{opacity:.6;cursor:not-allowed}
+.spinner{width:18px;height:18px;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;
+  border-radius:50%;animation:spin .7s linear infinite;display:none}
+.submit.loading .spinner{display:block}
+.submit.loading .btn-label{opacity:.85}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.footnote{margin-top:18px;text-align:center;font-size:.8rem;color:var(--muted)}
+.footnote a{color:var(--teal);text-decoration:none;border-bottom:1px solid var(--line)}
+
+.preview-flag{
+  margin-top:16px;font-size:.78rem;color:var(--coral-deep);text-align:center;
+  background:rgba(224,115,79,.08);border:1px dashed var(--coral);border-radius:9px;padding:9px;display:none;
+}
+
+/* ---------- Success ---------- */
+.success{display:none;text-align:center;padding:18px 6px 6px;animation:rise .5s ease both}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.success .check{
+  width:62px;height:62px;margin:0 auto 18px;border-radius:50%;
+  background:rgba(47,125,91,.12);display:grid;place-items:center;
+}
+.success .check svg{width:30px;height:30px;stroke:var(--ok);fill:none;stroke-width:2.4;
+  stroke-dasharray:30;stroke-dashoffset:30;animation:draw .5s .25s ease forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.success h2{font-family:"Fraunces",serif;font-weight:500;font-size:1.7rem;color:var(--teal);margin-bottom:8px}
+.success p{color:var(--ink-soft);font-size:.97rem;max-width:430px;margin:0 auto}
+.success .again{margin-top:22px;background:none;border:1.5px solid var(--line);color:var(--teal);
+  font-family:inherit;font-weight:600;font-size:.92rem;padding:11px 22px;border-radius:10px;cursor:pointer}
+.success .again:hover{border-color:var(--teal)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <div class="kicker">Bermuda Journal of Academic Research <span class="dot"></span> Inaugural Conference</div>
+    <h1>Delegate <em>Sign-Up</em></h1>
+    <div class="meta">
+      <span><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg> 24 July 2026 · 2–7 PM</span>
+      <span><svg viewBox="0 0 24 24"><path d="M12 21s-7-5.5-7-11a7 7 0 0114 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg> Bermuda</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <!-- FORM -->
+    <div id="formView">
+      <p class="intro">You've been invited to attend on behalf of <strong>your organisation</strong>. Select your organisation, add your details, and you're registered. Takes under a minute.</p>
+
+      <div class="privacy">
+        <svg viewBox="0 0 24 24"><path d="M12 3l7 4v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V7z"/><path d="M9.5 12l1.8 1.8L15 10"/></svg>
+        <span>Your response is private. No one else completing this form — from your team or any other organisation — can see your details.</span>
+      </div>
+
+      <form id="signupForm" novalidate>
+
+        <!-- Organisation: searchable dropdown -->
+        <div class="field" id="f-org">
+          <label for="orgInput">Organisation <span class="req">*</span></label>
+          <div class="hint">Start typing to search, then select from the list.</div>
+          <div class="combo" id="combo">
+            <input type="text" class="combo-input" id="orgInput" placeholder="Select your organisation…" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="orgList" readonly>
+            <input type="hidden" id="orgValue" name="organisation">
+            <div class="combo-list" id="orgList" role="listbox"></div>
+          </div>
+          <div class="error-msg">Please select your organisation.</div>
+        </div>
+
+        <!-- Manual org entry (revealed when "not listed" chosen) -->
+        <div class="field" id="f-orgManual" style="display:none">
+          <label for="orgManual">Type your organisation name <span class="req">*</span></label>
+          <input type="text" id="orgManual" placeholder="e.g. Acme Reinsurance Ltd.">
+          <div class="error-msg">Please enter your organisation name.</div>
+        </div>
+
+        <div class="field" id="f-name">
+          <label for="name">Full name <span class="req">*</span></label>
+          <input type="text" id="name" name="name" placeholder="First and last name" autocomplete="name">
+          <div class="error-msg">Please enter your name.</div>
+        </div>
+
+        <div class="field" id="f-email">
+          <label for="email">Email address <span class="req">*</span></label>
+          <input type="email" id="email" name="email" placeholder="you@organisation.bm" autocomplete="email">
+          <div class="error-msg">Please enter a valid email address.</div>
+        </div>
+
+        <div class="field" id="f-role">
+          <label for="role">Job title / role <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+          <input type="text" id="role" name="role" placeholder="e.g. Research Analyst">
+        </div>
+
+        <!-- EDIT these track options to match your three research tracks -->
+        <div class="field" id="f-track">
+          <label for="track">Research track of interest <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+          <select id="track" name="track">
+            <option value="">No preference</option>
+            <option>Economics &amp; Finance</option>
+            <option>Social Sciences &amp; Policy</option>
+            <option>Science, Technology &amp; Environment</option>
+          </select>
+        </div>
+
+        <div class="field" id="f-needs">
+          <label for="needs">Accessibility or dietary requirements <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+          <textarea id="needs" name="needs" placeholder="Let us know if there's anything we should arrange."></textarea>
+        </div>
+
+        <div class="consent" id="f-consent">
+          <input type="checkbox" id="consent" name="consent">
+          <label for="consent">I consent to BJAR using my name and contact details to administer my registration for the Inaugural Conference. <span class="req">*</span></label>
+        </div>
+        <div class="error-msg" id="consentErr" style="margin-top:-12px;margin-bottom:0">Please tick the consent box to continue.</div>
+
+        <button type="submit" class="submit" id="submitBtn">
+          <span class="spinner"></span>
+          <span class="btn-label">Complete registration</span>
+        </button>
+
+        <div class="preview-flag" id="previewFlag">Preview mode — no Google Sheet connected yet. Submissions won't be saved until you add your <code>scriptUrl</code>.</div>
+      </form>
+
+      <p class="footnote">Questions? <a href="mailto:researchjournalbda@gmail.com">researchjournalbda@gmail.com</a></p>
+    </div>
+
+    <!-- SUCCESS -->
+    <div class="success" id="successView">
+      <div class="check"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></div>
+      <h2>You're registered</h2>
+      <p>Thank you — your spot at the BJAR Inaugural Conference is confirmed. We'll be in touch by email with joining details closer to the date.</p>
+      <button class="again" id="againBtn">Register another person</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   CONFIG  —  the only part you need to edit
+   ============================================================ */
+const CONFIG = {
+  // Paste your Google Apps Script Web App URL here (ends in /exec).
+  // Leave "" to run in preview mode using the fallback list below.
+  scriptUrl: "https://script.google.com/macros/s/AKfycbzdIvurj0ibyHK0-g_jiaAV_JaNNHV3EfY-Ic9R4Na_2kNwo5_TQxEmXRj-CvYUy6zfZw/exec",
+
+  // Fallback organisation list — used if scriptUrl is blank OR the
+  // live fetch fails. Edit freely. Once scriptUrl is set and your
+  // sheet has organisations, the live list takes over automatically.
+  organisations: [
+    "Bermuda Monetary Authority",
+    "Bermuda Business Development Agency",
+    "Bermuda Hospitals Board",
+    "Government of Bermuda",
+    "HSBC Bermuda",
+    "Clarien Bank",
+    "Bermuda College"
+  ]
+};
+
+/* ---------- Searchable dropdown ---------- */
+const combo = document.getElementById('combo');
+const orgInput = document.getElementById('orgInput');
+const orgValue = document.getElementById('orgValue');
+const orgList = document.getElementById('orgList');
+const fOrgManual = document.getElementById('f-orgManual');
+const orgManual = document.getElementById('orgManual');
+
+let orgs = [];
+let activeIdx = -1;
+const MANUAL = "__manual__";
+
+function loadOrgs(){
+  orgList.innerHTML = '<div class="combo-loading">Loading organisations…</div>';
+  if(!CONFIG.scriptUrl){
+    orgs = CONFIG.organisations.slice();
+    document.getElementById('previewFlag').style.display = 'block';
+    renderList('');
+    return;
+  }
+  fetch(CONFIG.scriptUrl + (CONFIG.scriptUrl.includes('?') ? '&' : '?') + 'list=orgs')
+    .then(r => r.json())
+    .then(data => {
+      orgs = (Array.isArray(data) ? data : (data.organisations || [])).filter(Boolean);
+      if(!orgs.length) orgs = CONFIG.organisations.slice();
+      renderList('');
+    })
+    .catch(() => { orgs = CONFIG.organisations.slice(); renderList(''); });
+}
+
+function renderList(filter){
+  const f = filter.trim().toLowerCase();
+  const matches = orgs.filter(o => o.toLowerCase().includes(f));
+  let html = '';
+  if(matches.length){
+    html += matches.map((o,i) =>
+      `<div class="combo-opt" role="option" data-val="${esc(o)}" data-i="${i}">${esc(o)}</div>`).join('');
+  } else {
+    html += `<div class="combo-empty">No match for “${esc(filter)}”.</div>`;
+  }
+  html += `<div class="combo-opt manual" role="option" data-val="${MANUAL}">＋ My organisation isn't listed</div>`;
+  orgList.innerHTML = html;
+  activeIdx = -1;
+}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+function openCombo(){ combo.classList.add('open'); orgInput.setAttribute('aria-expanded','true'); orgInput.removeAttribute('readonly'); }
+function closeCombo(){ combo.classList.remove('open'); orgInput.setAttribute('aria-expanded','false'); }
+
+orgInput.addEventListener('click', () => {
+  if(combo.classList.contains('open')){ closeCombo(); return; }
+  renderList(''); openCombo(); orgInput.select && orgInput.select();
+});
+orgInput.addEventListener('input', () => { orgInput.classList.remove('chosen'); openCombo(); renderList(orgInput.value); });
+
+orgInput.addEventListener('keydown', (e) => {
+  const opts = [...orgList.querySelectorAll('.combo-opt')];
+  if(e.key === 'ArrowDown'){ e.preventDefault(); openCombo(); activeIdx = Math.min(activeIdx+1, opts.length-1); paintActive(opts); }
+  else if(e.key === 'ArrowUp'){ e.preventDefault(); activeIdx = Math.max(activeIdx-1, 0); paintActive(opts); }
+  else if(e.key === 'Enter'){ if(combo.classList.contains('open')){ e.preventDefault(); if(opts[activeIdx]) choose(opts[activeIdx]); } }
+  else if(e.key === 'Escape'){ closeCombo(); }
+});
+function paintActive(opts){ opts.forEach((o,i)=>o.classList.toggle('active', i===activeIdx)); if(opts[activeIdx]) opts[activeIdx].scrollIntoView({block:'nearest'}); }
+
+orgList.addEventListener('click', (e) => { const opt = e.target.closest('.combo-opt'); if(opt) choose(opt); });
+
+function choose(opt){
+  const val = opt.getAttribute('data-val');
+  if(val === MANUAL){
+    orgValue.value = MANUAL;
+    orgInput.value = "My organisation isn't listed";
+    orgInput.classList.add('chosen');
+    fOrgManual.style.display = 'block';
+  } else {
+    orgValue.value = val;
+    orgInput.value = val;
+    orgInput.classList.add('chosen');
+    fOrgManual.style.display = 'none';
+  }
+  orgInput.setAttribute('readonly','');
+  closeCombo();
+  document.getElementById('f-org').classList.remove('invalid');
+}
+
+document.addEventListener('click', (e) => { if(!combo.contains(e.target)){ closeCombo(); if(!orgValue.value) orgInput.value=''; orgInput.setAttribute('readonly',''); } });
+
+/* ---------- Validation + submit ---------- */
+const form = document.getElementById('signupForm');
+const submitBtn = document.getElementById('submitBtn');
+
+function setInvalid(id, bad){ document.getElementById(id).classList.toggle('invalid', bad); }
+
+form.addEventListener('submit', (e) => {
+  e.preventDefault();
+  let ok = true;
+
+  const usingManual = orgValue.value === MANUAL;
+  const orgEmpty = !orgValue.value;
+  setInvalid('f-org', orgEmpty); if(orgEmpty) ok = false;
+  if(usingManual){ const m = !orgManual.value.trim(); setInvalid('f-orgManual', m); if(m) ok = false; }
+
+  const nameEl = document.getElementById('name');
+  const nameBad = !nameEl.value.trim(); setInvalid('f-name', nameBad); if(nameBad) ok = false;
+
+  const emailEl = document.getElementById('email');
+  const emailBad = !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailEl.value.trim());
+  setInvalid('f-email', emailBad); if(emailBad) ok = false;
+
+  const consentEl = document.getElementById('consent');
+  document.getElementById('consentErr').style.display = consentEl.checked ? 'none' : 'block';
+  if(!consentEl.checked) ok = false;
+
+  if(!ok){ document.querySelector('.invalid, #consentErr[style*="block"]')?.scrollIntoView({behavior:'smooth',block:'center'}); return; }
+
+  const payload = {
+    organisation: usingManual ? orgManual.value.trim() : orgValue.value,
+    orgFromList: !usingManual,
+    name: nameEl.value.trim(),
+    email: emailEl.value.trim(),
+    role: document.getElementById('role').value.trim(),
+    track: document.getElementById('track').value,
+    needs: document.getElementById('needs').value.trim(),
+    consent: true,
+    submittedAt: new Date().toISOString()
+  };
+
+  submitBtn.classList.add('loading'); submitBtn.disabled = true;
+
+  if(!CONFIG.scriptUrl){ setTimeout(showSuccess, 800); return; } // preview mode
+
+  fetch(CONFIG.scriptUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // avoids CORS preflight
+    body: JSON.stringify(payload)
+  })
+  .then(() => showSuccess())
+  .catch(() => {
+    submitBtn.classList.remove('loading'); submitBtn.disabled = false;
+    alert("Sorry — something went wrong saving your registration. Please try again, or email researchjournalbda@gmail.com.");
+  });
+});
+
+function showSuccess(){
+  document.getElementById('formView').style.display = 'none';
+  document.getElementById('successView').style.display = 'block';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+document.getElementById('againBtn').addEventListener('click', () => {
+  form.reset();
+  orgValue.value=''; orgInput.value=''; orgInput.classList.remove('chosen'); fOrgManual.style.display='none';
+  document.querySelectorAll('.invalid').forEach(el=>el.classList.remove('invalid'));
+  document.getElementById('consentErr').style.display='none';
+  submitBtn.classList.remove('loading'); submitBtn.disabled=false;
+  document.getElementById('successView').style.display='none';
+  document.getElementById('formView').style.display='block';
+});
+
+loadOrgs();
+</script>
+</body>
+</html>
