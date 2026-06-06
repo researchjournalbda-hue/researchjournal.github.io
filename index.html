@@ -130,6 +130,11 @@ input::placeholder,textarea::placeholder{color:#a9b2af}
 .consent input{margin-top:3px;width:18px;height:18px;flex:none;accent-color:var(--teal)}
 .consent label{font-weight:400;font-size:.9rem;color:var(--ink-soft);margin:0;cursor:pointer}
 
+/* per-person marketing opt-out */
+.popt{display:flex;gap:10px;align-items:flex-start;margin:2px 0 14px;cursor:pointer}
+.popt input{margin-top:2px;width:16px;height:16px;flex:none;accent-color:var(--teal)}
+.popt span{font-weight:400;font-size:.82rem;color:var(--muted);line-height:1.45}
+
 .error-msg{display:none;color:var(--err);font-size:.82rem;margin-top:6px;font-weight:500}
 .error-msg.show{display:block}
 .field.invalid .error-msg{display:block}
@@ -258,7 +263,7 @@ input::placeholder,textarea::placeholder{color:#a9b2af}
    ============================================================ */
 const CONFIG = {
   scriptUrl: "https://script.google.com/macros/s/AKfycbzdIvurj0ibyHK0-g_jiaAV_JaNNHV3EfY-Ic9R4Na_2kNwo5_TQxEmXRj-CvYUy6zfZw/exec",
-  
+
   // If an org has no cap set in the sheet, allow up to this many in one go.
   unlimitedUiCap: 20
 };
@@ -283,7 +288,7 @@ const submitBtn = document.getElementById('submitBtn');
 const btnLabel = document.getElementById('btnLabel');
 
 /* ---------- Load orgs (+caps) ---------- */
-function fallback(){ return CONFIG.fallbackOrgs.map(o => ({organisation:o.organisation, committed:o.committed??null, used:0, remaining:o.committed??null})); }
+function fallback(){ return (CONFIG.fallbackOrgs || []).map(o => ({organisation:o.organisation, committed:o.committed??null, used:0, remaining:o.committed??null})); }
 
 function loadOrgs(){
   orgList.innerHTML = '<div class="combo-loading">Loading organisations…</div>';
@@ -402,6 +407,7 @@ function personTemplate(){
       <div class="pfield"><label>Job title <span class="opt">(optional)</span></label><input type="text" class="p-role" placeholder="e.g. Research Analyst"></div>
       <div class="pfield"><label>Dietary / accessibility <span class="opt">(optional)</span></label><input type="text" class="p-needs" placeholder="Anything we should arrange?"></div>
     </div>
+    <label class="popt"><input type="checkbox" class="p-optout"><span>Opt out of future communications from BJAR — newsletters, the journal, and news of upcoming events. You'll still receive essential details about this conference.</span></label>
   </div>`;
 }
 function addPerson(){
@@ -450,7 +456,8 @@ form.addEventListener('submit', e => {
     b.querySelector('.p-email-f').classList.toggle('invalid', emailBad);
     if(nameBad || emailBad) ok = false;
     delegates.push({ name:nameEl.value.trim(), email:emailEl.value.trim(),
-      role:b.querySelector('.p-role').value.trim(), needs:b.querySelector('.p-needs').value.trim() });
+      role:b.querySelector('.p-role').value.trim(), needs:b.querySelector('.p-needs').value.trim(),
+      optOut:b.querySelector('.p-optout').checked });
   });
 
   const consentEl = document.getElementById('consent');
