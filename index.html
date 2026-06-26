@@ -296,15 +296,19 @@ function loadOrgs(){
   fetch(CONFIG.scriptUrl + (CONFIG.scriptUrl.includes('?')?'&':'?') + 'list=orgs')
     .then(r => r.json())
     .then(data => {
-const arr = Array.isArray(data) ? data : (data.organisations || []);
-orgData = arr.map(o => typeof o === 'string'
-  ? {organisation:o, committed:null, used:0, remaining:null}
-  : {
-      organisation: o.organisation || o.name,
-      committed:    o.committed ?? o.cap ?? null,
-      used:         o.used || 0,
-      remaining:    o.remaining ?? (o.cap != null ? Math.max(0, o.cap - (o.used || 0)) : null)
-    });
+      const arr = Array.isArray(data) ? data : (data.organisations || []);
+      orgData = arr.map(o => typeof o === 'string'
+        ? {organisation:o, committed:null, used:0, remaining:null}
+        : {
+            organisation: o.organisation || o.name,
+            committed:    o.committed ?? o.cap ?? null,
+            used:         o.used || 0,
+            remaining:    o.remaining ?? (o.cap != null ? Math.max(0, o.cap - (o.used || 0)) : null)
+          });
+      if(!orgData.length) orgData = fallback();
+      renderList('');
+    })
+    .catch(() => { orgData = fallback(); renderList(''); });
 }
 
 function badge(o){
