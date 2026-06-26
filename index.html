@@ -262,7 +262,7 @@ input::placeholder,textarea::placeholder{color:#a9b2af}
    CONFIG
    ============================================================ */
 const CONFIG = {
-  scriptUrl: "https://script.google.com/macros/s/AKfycbz6FOA8QXLi3JVzzGCAwz742DrcBlOGeLXhMXEl8359dCqBd-xGykiCeDRCDGJdgV2-/exec",
+  scriptUrl: "https://script.google.com/macros/s/AKfycbxbeaIKyfdjp4FIYwJ8ix_wkOoyvWWrpTZZ5mPPXFmm1njSdj99UNmZKuOlBr5vpTou/exec",
 
   // If an org has no cap set in the sheet, allow up to this many in one go.
   unlimitedUiCap: 20
@@ -296,14 +296,15 @@ function loadOrgs(){
   fetch(CONFIG.scriptUrl + (CONFIG.scriptUrl.includes('?')?'&':'?') + 'list=orgs')
     .then(r => r.json())
     .then(data => {
-      const arr = Array.isArray(data) ? data : (data.organisations || []);
-      orgData = arr.map(o => typeof o === 'string'
-        ? {organisation:o, committed:null, used:0, remaining:null}
-        : {organisation:o.organisation, committed:(o.committed??null), used:(o.used||0), remaining:(o.remaining??null)});
-      if(!orgData.length) orgData = fallback();
-      renderList('');
-    })
-    .catch(() => { orgData = fallback(); renderList(''); });
+const arr = Array.isArray(data) ? data : (data.organisations || []);
+orgData = arr.map(o => typeof o === 'string'
+  ? {organisation:o, committed:null, used:0, remaining:null}
+  : {
+      organisation: o.organisation || o.name,
+      committed:    o.committed ?? o.cap ?? null,
+      used:         o.used || 0,
+      remaining:    o.remaining ?? (o.cap != null ? Math.max(0, o.cap - (o.used || 0)) : null)
+    });
 }
 
 function badge(o){
